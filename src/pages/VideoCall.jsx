@@ -124,7 +124,7 @@ const VideoCall = () => {
       );
       console.log("Cleaned up negotiationneeded event listener");
     };
-  }, []);
+  }, [socket]);
 
   const handleRtcNegotiation = useCallback(
     async ({ room, offer }) => {
