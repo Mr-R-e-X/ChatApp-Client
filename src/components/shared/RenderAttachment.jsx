@@ -5,15 +5,19 @@ import { FileOpen as FileOpenIcon } from "@mui/icons-material";
 const RenderAttachment = ({ file, url }) => {
   switch (file) {
     case "video":
-      return <video src={url} preload="none" width={"200px"} />;
+      return (
+        <video preload="none" width={"300px"} controls>
+          <source src={url} />
+        </video>
+      );
 
     case "image":
       return (
         <img
           src={transformImg(url, 200)}
           alt="Attachment"
-          width={"200px"}
-          height={"150px"}
+          width={"250px"}
+          height={"250px"}
           style={{ objectFit: "contain" }}
         />
       );

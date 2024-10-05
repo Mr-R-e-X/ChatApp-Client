@@ -3,35 +3,26 @@ import {
   Group as GroupIcon,
   Logout as LogoutIcon,
   Menu as MenuIcon,
-  Message,
   Notifications as NotificationsIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
 import {
-  AppBar,
+  Avatar,
   Backdrop,
   Badge,
   Box,
   IconButton,
-  Stack,
   Toolbar,
   Tooltip,
-  Typography,
 } from "@mui/material";
-import axios from "axios";
 import React, { lazy, Suspense } from "react";
-import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { primaryColor } from "../../constants/color";
-import { server } from "../../constants/config";
-import api from "../../redux/api/api";
-import { userNotExists } from "../../redux/reducers/auth";
-import { resetNotificationsCount } from "../../redux/reducers/chat";
+import { logoutHandler, openNotifications } from "../../hooks/hooks";
 import {
   setIsMobileMenu,
   setIsNewGroup,
-  setIsNotifiaction,
+  setIsProfileDrawerOpen,
   setIsSearch,
 } from "../../redux/reducers/misc";
 
@@ -41,13 +32,13 @@ const NotificationsDialog = lazy(() => import("../specific/Notifications"));
 
 const NewGroupsDialog = lazy(() => import("../specific/NewGroups"));
 
-const Header = () => {
+const Sidebar = () => {
   const navigate = useNavigate();
   const { isSearch, isNotification, isNewGroup } = useSelector(
     (state) => state.misc
   );
   const { notificationsCount } = useSelector((state) => state.chat);
-  console.log(notificationsCount);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const handleMobile = () => {
     dispatch(setIsMobileMenu(true));
@@ -59,89 +50,123 @@ const Header = () => {
     dispatch(setIsNewGroup(true));
   };
   const navigateToGroup = () => navigate("/group");
-  const logoutHandler = async () => {
-    try {
-      const { data } = await axios.get(`${server}/api/user/logout`, {
-        withCredentials: true,
-      });
-      dispatch(userNotExists());
-      dispatch(api.util.resetApiState());
-      toast.success(data.data.message);
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Something Went Wrong ...!!"
-      );
-    }
-  };
-  const openNotifications = () => {
-    dispatch(setIsNotifiaction(true));
-    dispatch(resetNotificationsCount());
-  };
 
   return (
     <>
-      <Box sx={{ flexGrow: 1 }} height={"4rem"}>
-        <AppBar
-          position="static"
-          sx={{
-            background: primaryColor,
-          }}
-        >
-          <Toolbar>
-            <Stack direction={"row"} alignItems={"center"}>
-              <Typography
-                variant="h6"
-                color={"green"}
-                sx={{
-                  display: { xs: "none", sm: "block" },
-                  cursor: "pointer",
-                  fontWeight: "900",
-                }}
-              >
-                Chatterly
-                <Message />
-              </Typography>
-            </Stack>
-            <Box sx={{ display: { xs: "block", sm: "none" } }}>
+      <Box height={"100vh"} width={"100%"} overflow={"hidden"}>
+        <Toolbar>
+          <Box
+            sx={{
+              display: "flex",
+              width: "100%",
+              height: "100vh",
+              gap: "1rem",
+              flexDirection: "column",
+              justifyContent: "start",
+              marginTop: "1rem",
+            }}
+          >
+            <Box
+              sx={{
+                display: { xs: "flex", sm: "none" },
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
               <IconBtn
                 title={"Menu"}
                 icon={<MenuIcon />}
                 clickFunc={handleMobile}
               />
             </Box>
-            <Box sx={{ flexGrow: 1 }} />
-            <Box>
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
               <IconBtn
                 title="Search"
                 icon={<SearchIcon />}
                 clickFunc={openSearchDialog}
               />
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
               <IconBtn
                 title="New Group"
                 icon={<AddIcon />}
                 clickFunc={openNewGroup}
               />
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
               <IconBtn
                 title="Manage Groups"
                 icon={<GroupIcon />}
                 clickFunc={navigateToGroup}
               />
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
               <IconBtn
                 title="Notifications"
                 icon={<NotificationsIcon />}
-                clickFunc={openNotifications}
+                clickFunc={() => openNotifications(dispatch)}
                 value={notificationsCount}
               />
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
               <IconBtn
                 title="Logout"
                 icon={<LogoutIcon />}
-                clickFunc={logoutHandler}
+                clickFunc={() => logoutHandler(dispatch)}
               />
             </Box>
-          </Toolbar>
-        </AppBar>
+            <Box sx={{ flexGrow: 1 }}></Box>
+            <Box
+              sx={{
+                width: "100%",
+                marginBottom: "2rem",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <Toolbar>
+                <Tooltip title="Profile">
+                  <Avatar
+                    src={user?.avatar.url}
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => dispatch(setIsProfileDrawerOpen(true))}
+                  />
+                </Tooltip>
+              </Toolbar>
+            </Box>
+          </Box>
+        </Toolbar>
       </Box>
-
       {isSearch && (
         <Suspense fallback={<Backdrop open />}>
           <SearchDialog />
@@ -177,4 +202,4 @@ const IconBtn = ({ title, icon, clickFunc, value }) => {
   );
 };
 
-export default Header;
+export default Sidebar;

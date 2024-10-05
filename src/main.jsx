@@ -25,7 +25,7 @@ const globalStyles = {
     borderRadius: "4px",
   },
   "::-webkit-scrollbar-track": {
-    backgroundColor: "#333", // Scrollbar track color
+    backgroundColor: "#333",
   },
   "::-webkit-scrollbar-thumb:hover": {
     backgroundColor: "#555",

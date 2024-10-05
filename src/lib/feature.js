@@ -22,7 +22,13 @@ const fileFormat = (url = "") => {
   return "file";
 };
 
-const transformImg = (url = "", width = 100) => {
+const format = (url = "") => url.split(".").pop();
+
+const transformImg = (url = "", width = 250) => {
+  if (url) {
+    url = url.replace("upload/", `upload/w_${width},dpr_auto/`);
+  }
+
   return url;
 };
 
@@ -37,4 +43,20 @@ const lastSevenDays = () => {
   return lastSevenDays;
 };
 
-export { fileFormat, transformImg, lastSevenDays };
+const getOrSaveFromStorage = ({ key, value, get }) => {
+  if (get) {
+    return localStorage.getItem(key)
+      ? JSON.parse(localStorage.getItem(key))
+      : null;
+  } else {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+};
+
+export {
+  fileFormat,
+  transformImg,
+  lastSevenDays,
+  format,
+  getOrSaveFromStorage,
+};

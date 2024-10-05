@@ -1,6 +1,14 @@
-import React, { memo } from "react";
-import { Link } from "../styles/StyledComponents";
 import { Box, Stack, Typography } from "@mui/material";
+import { motion } from "framer-motion";
+import React, { memo } from "react";
+import { useDispatch } from "react-redux";
+import { neutralColor } from "../../constants/color";
+import {
+  setChatListVisibilityForMobile,
+  setIsMobileMenu,
+  setselectedChatInfo,
+} from "../../redux/reducers/misc";
+import { Link } from "../styles/StyledComponents";
 import AvatarCard from "./AvatarCard";
 
 const ChatItem = ({
@@ -12,15 +20,32 @@ const ChatItem = ({
   isOnline,
   newMessageAlert,
   index = 0,
-  handleDeleteChat,
+  handleInfoChat,
 }) => {
+  const dispatch = useDispatch();
+
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    handleInfoChat(e, _id, groupChat);
+  };
+
+  const handleMobileView = (e) => {
+    dispatch(setIsMobileMenu(false));
+    dispatch(setChatListVisibilityForMobile(false));
+    dispatch(setselectedChatInfo({ chatId: _id, groupChat }));
+  };
+
   return (
     <Link
       sx={{ padding: 0 }}
       to={`/chat/${_id}`}
-      onContextMenu={(e) => handleDeleteChat(e, _id, groupChat)}
+      onContextMenu={handleContextMenu}
+      onClick={handleMobileView}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: "-50%" }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
         style={{
           display: "flex",
           alignItems: "center",
@@ -29,16 +54,27 @@ const ChatItem = ({
           backgroundColor: sameSender ? "rgba(255, 255, 255, 0.3)" : "unset",
           cursor: "pointer",
           position: "relative",
-          position: "relative",
         }}
+        onClick={handleMobileView}
       >
         <AvatarCard avatar={avatar} />
         <Stack>
-          <Typography sx={{ textDecoration: "none", fontWeight: "600" }}>
-            {name}
+          <Typography
+            variant="body1"
+            sx={{ textDecoration: "none", fontWeight: "400" }}
+          >
+            {groupChat ? name : name.username}
           </Typography>
+          {!groupChat && (
+            <Typography variant="caption" color={neutralColor}>
+              {" "}
+              {name.name}{" "}
+            </Typography>
+          )}
           {newMessageAlert && (
-            <Typography>{newMessageAlert.count} New Messages</Typography>
+            <Typography variant="caption" color={"orange"} fontWeight={"500"}>
+              {newMessageAlert.count} New Messages
+            </Typography>
           )}
         </Stack>
 
@@ -57,7 +93,7 @@ const ChatItem = ({
             }}
           />
         )}
-      </div>
+      </motion.div>
     </Link>
   );
 };

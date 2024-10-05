@@ -1,13 +1,13 @@
 import React from "react";
 import { Grid, Skeleton, Stack } from "@mui/material";
+import { BounceSkeleton } from "../styles/StyledComponents";
 
-export const LayoutLoader = () => {
+const LayoutLoader = () => {
   return (
     <Grid container height={"calc(100vh-4rem)"} spacing={"1rem"}>
       <Grid
         item
         sm={4}
-        md={3}
         sx={{
           display: { xs: "none", sm: "block" },
         }}
@@ -15,25 +15,62 @@ export const LayoutLoader = () => {
       >
         <Skeleton variant="rounded" height={"100vh"} />
       </Grid>
-      <Grid item xs={12} sm={8} md={5} lg={6} height={"100%"}>
-        <Stack spacing={"1rem"}>
-          {Array.from({ length: 10 }).map((_, idx) => (
-            <Skeleton key={idx} variant="rounded" height={"5rem"} />
+      <Grid item xs={12} sm={8} height={"100%"}>
+        <Stack spacing={"1rem"} marginTop={"1rem"}>
+          {Array.from({ length: 9 }).map((_, idx) => (
+            <Skeleton key={idx} variant="rounded" height={"4.5rem"} />
           ))}
         </Stack>
-      </Grid>
-      <Grid
-        item
-        md={4}
-        lg={3}
-        height={"100%"}
-        sx={{
-          display: { xs: "none", md: "block" },
-          padding: "2rem",
-        }}
-      >
-        <Skeleton variant="rounded" height={"100vh"} />
       </Grid>
     </Grid>
   );
 };
+
+const TypingLoader = () => {
+  return (
+    <Stack
+      spacing={"0.5rem"}
+      direction={"row"}
+      padding={"0.5rem"}
+      justifyContent={"center"}
+    >
+      <BounceSkeleton
+        variant="circular"
+        width={15}
+        height={15}
+        sx={{ marginBottom: "10px" }}
+        style={{ animationDelay: "0.2s" }}
+      />
+      <BounceSkeleton
+        variant="circular"
+        width={15}
+        height={15}
+        sx={{ marginBottom: "10px" }}
+        style={{ animationDelay: "0.4s" }}
+      />
+      <BounceSkeleton
+        variant="circular"
+        width={15}
+        height={15}
+        sx={{ marginBottom: "10px" }}
+        style={{ animationDelay: "0.6s" }}
+      />
+      <BounceSkeleton
+        variant="circular"
+        width={15}
+        height={15}
+        sx={{ marginBottom: "10px" }}
+        style={{ animationDelay: "0.8s" }}
+      />
+      <BounceSkeleton
+        variant="circular"
+        width={15}
+        height={15}
+        sx={{ marginBottom: "10px" }}
+        style={{ animationDelay: "0.10s" }}
+      />
+    </Stack>
+  );
+};
+
+export { LayoutLoader, TypingLoader };

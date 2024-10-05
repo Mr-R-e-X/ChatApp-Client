@@ -1,4 +1,7 @@
+import { useInputValidation } from "6pp";
+import { Search as SearchIcon } from "@mui/icons-material";
 import {
+  Box,
   Dialog,
   DialogTitle,
   InputAdornment,
@@ -6,25 +9,60 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { Search as SearchIcon } from "@mui/icons-material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { executeMutation } from "../../hooks/hooks";
+import {
+  useLazySearchUserQuery,
+  useSendFriendRequestMutation,
+} from "../../redux/api/api";
+import { setIsSearch } from "../../redux/reducers/misc";
 import UserItem from "../shared/UserItem";
-import { sampleUsers } from "../../constants/sampleData";
-import { useInputValidation } from "6pp";
+import { secondaryColor } from "../../constants/color";
 
 const Search = () => {
+  const [searchUser] = useLazySearchUserQuery();
+
   const search = useInputValidation("");
+  const dispatch = useDispatch();
+  const { isSearch } = useSelector((state) => state.misc);
 
-  let isLoadingSendFriendRequest = false;
-  const [users, setUsers] = useState(sampleUsers);
+  const [users, setUsers] = useState([]);
 
-  const addFriendHandler = (id) => {
-    console.log(id);
+  const searchCloseHandler = () => dispatch(setIsSearch(false));
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchUser(search.value)
+        .then(({ data }) => setUsers(data?.data?.users))
+        .catch((err) => console.log(err));
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [search.value]);
+
+  const [sendFriendRequest, isLoadingSendFriendRequest] = executeMutation(
+    useSendFriendRequestMutation
+  );
+  const addFriendHandler = async (id) => {
+    await sendFriendRequest("Sending friend request ...!!!", {
+      receiver: id,
+    });
   };
 
   return (
-    <Dialog open maxWidth={"xs"} fullWidth>
-      <Stack p={"2rem"} direction={"column"} width={"100%"} spacing={"1rem"}>
+    <Dialog
+      open={isSearch}
+      maxWidth={"xs"}
+      fullWidth
+      onClose={searchCloseHandler}
+    >
+      <Stack
+        p={"2rem"}
+        direction={"column"}
+        width={"100%"}
+        spacing={"1rem"}
+        sx={{ background: secondaryColor }}
+      >
         <DialogTitle textAlign={"center"}>Find People</DialogTitle>
         <TextField
           label=""
@@ -40,16 +78,18 @@ const Search = () => {
             ),
           }}
         />
-        <List>
-          {users.map((i, idx) => (
-            <UserItem
-              user={i}
-              key={i._id}
-              handler={addFriendHandler}
-              handlerIsLoading={isLoadingSendFriendRequest}
-            />
-          ))}
-        </List>
+        <Box sx={{ overflowY: "scroll" }} maxHeight={"65vh"}>
+          <List>
+            {users.map((i) => (
+              <UserItem
+                user={i}
+                key={i._id}
+                handler={addFriendHandler}
+                handelerIsLoading={isLoadingSendFriendRequest}
+              />
+            ))}
+          </List>
+        </Box>
       </Stack>
     </Dialog>
   );

@@ -1,9 +1,15 @@
+import axios from "axios";
 import React, { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ProtectRoute from "./components/auth/ProtectRoute";
 import { LayoutLoader } from "./components/layout/Loaders";
-import axios from "axios";
 import { server } from "./constants/config";
+
+import { userExists, userNotExists } from "./redux/reducers/auth";
+import { SocketProvider } from "./socket";
+import { StreamProvider } from "./context/StreamContext";
 
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
@@ -15,25 +21,38 @@ const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
 const ChatManagement = lazy(() => import("./pages/admin/ChatManagement"));
 const MessageManagement = lazy(() => import("./pages/admin/MessageManagement"));
-let user = true;
+const VideoScreen = lazy(() => import("./pages/VideoCall"));
 
 const App = () => {
-  useEffect(() => {
-    console.log(server);
-    axios
-      .get(`${server}/api/user/get-profile`)
-      .then((res) => console.log(res))
-      .catch((err) => console.log(err));
-  }, []);
+  const { user, loader } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
-  return (
+  useEffect(() => {
+    axios
+      .get(`${server}/api/user/get-profile`, { withCredentials: true })
+      .then(({ data }) => dispatch(userExists(data?.data?.user)))
+      .catch((err) => dispatch(userNotExists()));
+  }, [dispatch]);
+
+  return loader ? (
+    <LayoutLoader />
+  ) : (
     <BrowserRouter>
       <Suspense fallback={<LayoutLoader />}>
         <Routes>
-          <Route element={<ProtectRoute user={user} />}>
+          <Route
+            element={
+              <SocketProvider>
+                <StreamProvider>
+                  <ProtectRoute user={user} />
+                </StreamProvider>
+              </SocketProvider>
+            }
+          >
             <Route path="/" element={<Home />} />
             <Route path="/chat/:chatId" element={<Chat />} />
             <Route path="/group" element={<Group />} />
+            <Route path="/video/:chatId" element={<VideoScreen />} />
           </Route>
           <Route
             path="/login"
@@ -53,6 +72,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      <Toaster position="top-center" />
     </BrowserRouter>
   );
 };

@@ -1,4 +1,11 @@
-import React, { lazy, memo, Suspense, useEffect, useState } from "react";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Done as DoneIcon,
+  Edit as EditIcon,
+  KeyboardBackspace as KeyboardBackspaceIcon,
+  Menu as MenuIcon,
+} from "@mui/icons-material";
 import {
   Backdrop,
   Box,
@@ -11,20 +18,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import {
-  Delete as DeleteIcon,
-  Add as AddIcon,
-  Done as DoneIcon,
-  Edit as EditIcon,
-  KeyboardBackspace as KeyboardBackspaceIcon,
-  Menu as MenuIcon,
-} from "@mui/icons-material";
+import React, { lazy, memo, Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Link } from "../components/styles/StyledComponents";
 import AvatarCard from "../components/shared/AvatarCard";
-import { sampleChats, sampleUsers } from "../constants/sampleData";
 import UserItem from "../components/shared/UserItem";
-import { bgGradient, bgGradient1, bgGradientColor3 } from "../constants/color";
+import { Link } from "../components/styles/StyledComponents";
+import { bgGradientColor3 } from "../constants/color";
+import { sampleUsers } from "../constants/sampleData";
 
 const ConfirmDeleteDialog = lazy(() =>
   import("../components/dialogs/ConfirmDeleteDialog")
@@ -43,6 +43,7 @@ const Group = () => {
   const navigateBack = () => {
     navigate("/");
   };
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [groupName, setGroupName] = useState("");

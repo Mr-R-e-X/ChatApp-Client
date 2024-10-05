@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { useLocation, Link as LinkComponent, Navigate } from "react-router-dom";
+import { Link as LinkComponent, Navigate, useLocation } from "react-router-dom";
 import { bgGradient, bgGradientColor2 } from "../../constants/color";
 
 const Link = styled(LinkComponent)({

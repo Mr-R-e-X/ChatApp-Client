@@ -1,8 +1,13 @@
-import { styled } from "@mui/material";
+import { keyframes, Skeleton, styled } from "@mui/material";
 import { Link as LinkComponent } from "react-router-dom";
-import { grayColor } from "../../constants/color";
+import {
+  accentColor,
+  grayColor,
+  neutralColor,
+  primaryColor,
+} from "../../constants/color";
 
-export const VisuallyHidden = styled("input")({
+const VisuallyHidden = styled("input")({
   border: 0,
   clip: "rect(0 0 0 0)",
   height: "1px",
@@ -14,20 +19,21 @@ export const VisuallyHidden = styled("input")({
   whiteSpace: "nowrap",
 });
 
-export const Link = styled(LinkComponent)({
+const Link = styled(LinkComponent)({
   textDecoration: "none",
   color: "white",
   padding: "1rem",
-  backgroundColor: "inherit",
+  backgroundColor: "accentColor",
   transition: "all 0.2s ease-in-out",
+  margin: "4px 0",
   "&:hover": {
-    backgroundColor: "rgba(255,255,255, 0.9)",
-    color: "black",
+    background: neutralColor,
+    color: "white",
     fontWeight: "600",
   },
 });
 
-export const InputBox = styled("input")({
+const InputBox = styled("input")({
   width: "100%",
   height: "100%",
   border: "none",
@@ -36,7 +42,7 @@ export const InputBox = styled("input")({
   backgroundColor: `${grayColor}`,
 });
 
-export const SearchFeild = styled("input")({
+const SearchFeild = styled("input")({
   padding: "1rem 1rem",
   width: "20vmax",
   border: "none",
@@ -46,7 +52,7 @@ export const SearchFeild = styled("input")({
   fontSize: "1.1rem",
 });
 
-export const CurveButton = styled("button")({
+const CurveButton = styled("button")({
   backgroundColor: "#4caf50",
   color: "white",
   border: "none",
@@ -60,3 +66,26 @@ export const CurveButton = styled("button")({
     backgroundColor: "#45a049",
   },
 });
+
+const bounceAnimation = keyframes`
+  0%{transform: scale(1)}
+  50%{transform: scale(1.5)}
+  100%{transform: scale(1)}
+`;
+
+const BounceSkeleton = styled(Skeleton)({
+  animation: `${bounceAnimation} 1.5s infinite`,
+  background: accentColor,
+});
+
+export {
+  VisuallyHidden,
+  Link,
+  InputBox,
+  SearchFeild,
+  CurveButton,
+  grayColor,
+  neutralColor,
+  primaryColor,
+  BounceSkeleton,
+};

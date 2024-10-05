@@ -1,43 +1,93 @@
-import { Button, Dialog, DialogTitle, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  List,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import React, { useState } from "react";
-import { sampleUsers } from "../../constants/sampleData";
+import { useDispatch, useSelector } from "react-redux";
+import { executeMutation, useErrors } from "../../hooks/hooks";
+import {
+  useAddMemberToGroupMutation,
+  useGetUserFriendsQuery,
+} from "../../redux/api/api";
+import {
+  addCurrentGroupChatMember,
+  setAddMember,
+} from "../../redux/reducers/misc";
 import UserItem from "../shared/UserItem";
 
-const AddMemberDialog = ({ addMember, isLoadingAddMember, chatId }) => {
-  const [members, setMembers] = useState(sampleUsers);
+const AddMemberDialog = ({ chatId }) => {
+  const dispatch = useDispatch();
+  const { isAddMember } = useSelector((state) => state.misc);
+  const { isLoading, data, error, isError } = useGetUserFriendsQuery(chatId);
+
+  const [addMemberInGroup, isLoadingAddMemberInGroup] = executeMutation(
+    useAddMemberToGroupMutation
+  );
+
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const selectedMemberHandler = (id) => {
-    setSelectedMembers((prev) =>
-      prev.includes(id)
-        ? prev.filter((currElem) => currElem != id)
-        : [...prev, id]
-    );
+  const selectedMemberHandler = (member) => {
+    setSelectedMembers((prev) => {
+      const isAlreadySelected = prev.some((m) => m._id === member._id);
+      if (isAlreadySelected) {
+        return prev.filter((m) => m._id !== member._id);
+      } else {
+        return [...prev, member];
+      }
+    });
   };
+
   const addMemberSubmitHandler = () => {
+    const data = selectedMembers.map((member) => member._id);
+    addMemberInGroup("Adding Members ...", {
+      members: data,
+      chatId,
+    });
+    dispatch(addCurrentGroupChatMember(selectedMembers));
     closeHandler();
   };
   const closeHandler = () => {
-    setSelectedMembers([]);
-    setMembers([]);
+    dispatch(setAddMember(false));
   };
+  useErrors([{ isError, error }]);
+
   return (
-    <Dialog open onClose={closeHandler} maxWidth="xs" fullWidth>
-      <Stack padding={"1rem"}>
+    <Dialog open={isAddMember} onClose={closeHandler} maxWidth="xs" fullWidth>
+      <Stack
+        p={"2rem"}
+        direction={"column"}
+        width={"100%"}
+        spacing={"1rem"}
+        sx={{ background: secondaryColor }}
+      >
         <DialogTitle textAlign={"center"}>Add Member</DialogTitle>
-        <Stack spacing={"1rem"}>
-          {members.length > 0 ? (
-            members.map((i) => (
-              <UserItem
-                key={i._id}
-                user={i}
-                handler={selectedMemberHandler}
-                isAdded={selectedMembers.includes(i._id)}
-              />
-            ))
-          ) : (
-            <Typography textAlign={"center"}>No Friends</Typography>
-          )}
-        </Stack>
+        <Box spacing={"1rem"} sx={{ overflowY: "scroll", maxHeight: "45vh" }}>
+          <List>
+            {isLoading ? (
+              <Skeleton />
+            ) : data?.data?.friends?.length > 0 ? (
+              data.data.friends.map((i) => (
+                <UserItem
+                  key={i._id}
+                  user={i}
+                  handler={selectedMemberHandler}
+                  isAdded={
+                    selectedMembers.findIndex((mem) => mem._id === i._id) > -1
+                      ? true
+                      : false
+                  }
+                />
+              ))
+            ) : (
+              <Typography textAlign={"center"}>No Available Friends</Typography>
+            )}
+          </List>
+        </Box>
         <Stack
           my={"1rem"}
           direction={"row"}
@@ -50,7 +100,7 @@ const AddMemberDialog = ({ addMember, isLoadingAddMember, chatId }) => {
           <Button
             onClick={addMemberSubmitHandler}
             variant="contained"
-            disabled={isLoadingAddMember}
+            disabled={isLoadingAddMemberInGroup}
           >
             Submit Changes
           </Button>
