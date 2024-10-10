@@ -10,9 +10,10 @@ import {
   INCOMING_CALL,
   NEW_FRIEND,
   NEW_MESSAGE_ALERT,
-  NEW_OFFER_AWAITING,
   NEW_REQUEST,
+  RECEIVE_ICE_CANDIDATE,
 } from "../../constants/event.constants";
+import { getUserStream } from "../../context/StreamContext";
 import { showToast, useErrors, useSocketEvents } from "../../hooks/hooks";
 import { getOrSaveFromStorage } from "../../lib/feature";
 import ProfileDrawer from "../../pages/ProfileDrawer";
@@ -26,13 +27,13 @@ import {
   setselectedChatInfo,
   setSelectedDeleteChat,
 } from "../../redux/reducers/misc";
+import { setTypeOfCall } from "../../redux/reducers/webrtc";
 import { getSocket } from "../../socket";
+import PeerService from "../../webrtcUtilities/PeerService";
 import InfoDialog from "../dialogs/InfoDialog";
 import Title from "../shared/Title";
 import ChatList from "../specific/ChatList";
 import Sidebar from "./Sidebar";
-import { getUserStream } from "../../context/StreamContext";
-import { setTypeOfCall } from "../../redux/reducers/webrtc";
 
 const AppLayout = () => (WrappedComponent) => {
   return (props) => {
@@ -47,7 +48,7 @@ const AppLayout = () => (WrappedComponent) => {
     );
     const { user } = useSelector((state) => state.auth);
     const { newMessageAlert } = useSelector((state) => state.chat);
-    const { setUserLocalStream } = getUserStream();
+    const { userLocalStream } = getUserStream();
 
     const { isLoading, data, isError, error, refetch } = useUserChatsQuery("");
 
@@ -97,7 +98,7 @@ const AppLayout = () => (WrappedComponent) => {
                 video: true,
                 audio: true,
               });
-              setUserLocalStream(stream);
+              userLocalStream.current = stream;
               socket.emit(ACCEPTED_INCOMING_CALL, { room, offer });
               navigate(`/video/${room.chatId}`);
             } else {
@@ -110,12 +111,20 @@ const AppLayout = () => (WrappedComponent) => {
       },
       [socket]
     );
+    const handleIceCandidate = useCallback(
+      async ({ room, candidate, userId }) => {
+        console.log(`Got candidate ${candidate}`);
+        await PeerService.peer.addIceCandidate(new RTCIceCandidate(candidate));
+      },
+      [socket]
+    );
 
     const eventHandlers = {
       [NEW_MESSAGE_ALERT]: newMessagesAlertHandler,
       [NEW_REQUEST]: newRequestHandler,
       [NEW_FRIEND]: friendRequestAcceptedSocketHandeler,
       [INCOMING_CALL]: handleIncomingNotification,
+      [RECEIVE_ICE_CANDIDATE]: handleIceCandidate,
     };
 
     useSocketEvents(socket, eventHandlers);

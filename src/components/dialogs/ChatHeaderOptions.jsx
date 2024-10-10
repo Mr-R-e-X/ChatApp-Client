@@ -22,7 +22,7 @@ const ChatHeaderOptions = ({ anchor, chatId }) => {
   const { isChatOptionsOpen } = useSelector((state) => state.misc);
   const dispatch = useDispatch();
 
-  const { setUserLocalStream } = getUserStream();
+  const { userLocalStream } = getUserStream();
   const [mediaEnabled, setMediaEnabled] = useState(false);
 
   const closeHandler = () => {
@@ -35,14 +35,18 @@ const ChatHeaderOptions = ({ anchor, chatId }) => {
 
   const handleVideoCall = async () => {
     closeHandler();
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: true,
-    });
-    if (stream) {
-      setUserLocalStream(stream);
-      setMediaEnabled(true);
-      dispatch(setTypeOfCall("OFFER"));
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      if (stream) {
+        userLocalStream.current = stream;
+        setMediaEnabled(true);
+        dispatch(setTypeOfCall("OFFER"));
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
   useEffect(() => {

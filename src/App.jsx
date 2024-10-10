@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ProtectRoute from "./components/auth/ProtectRoute";
 import { LayoutLoader } from "./components/layout/Loaders";
 import { server } from "./constants/config";
+import VideoCall from "./pages/VideoCall";
 
 import { userExists, userNotExists } from "./redux/reducers/auth";
 import { SocketProvider } from "./socket";
@@ -21,7 +22,7 @@ const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
 const ChatManagement = lazy(() => import("./pages/admin/ChatManagement"));
 const MessageManagement = lazy(() => import("./pages/admin/MessageManagement"));
-const VideoScreen = lazy(() => import("./pages/VideoCall"));
+// const VideoScreen = lazy(() => import("./pages/VideoCall"));
 
 const App = () => {
   const { user, loader } = useSelector((state) => state.auth);
@@ -52,7 +53,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/chat/:chatId" element={<Chat />} />
             <Route path="/group" element={<Group />} />
-            <Route path="/video/:chatId" element={<VideoScreen />} />
+            <Route path="/video/:chatId" element={<VideoCall />} />
           </Route>
           <Route
             path="/login"

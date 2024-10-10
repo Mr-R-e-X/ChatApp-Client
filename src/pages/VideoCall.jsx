@@ -5,6 +5,7 @@ import PeerService from "../webrtcUtilities/PeerService";
 import {
   ACCEPTED_INCOMING_CALL,
   CALL_ACCEPTED,
+  ICE_CANDIDATE,
   RTC_FINAL_NEGOTIATION,
   RTC_NEGOTIATION,
   RTC_NEGOTIATION_DONE,
@@ -41,21 +42,33 @@ const VideoCall = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const { typeOfCall } = useSelector((state) => state.webrtc);
+  const peersRef = useRef(null);
   const [remoteStream, setRemoteStream] = useState(new Map());
-  const { userLocalStream, setUserLocalStream } = getUserStream();
+  const [remoteStreams, setRemoteStreams] = useState([]);
+  const { userLocalStream } = getUserStream();
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const addedTracks = new Set();
 
   useEffect(() => {
-    if (userLocalStream) {
+    if (userLocalStream.current) {
       const initiateCall = async () => {
+        //PeerService.peer.ontrack = (event) => {};
         const offer = await PeerService.createOffer();
         socket.emit(START_NEW_CALL, {
           room: { chatId, hostUser: user._id, hostUserName: user.username },
           offer,
         });
+        PeerService.peer.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit(ICE_CANDIDATE, {
+              room: { chatId },
+              candidate: event.candidate,
+              userId: user._id,
+            });
+          }
+        };
       };
       initiateCall();
     } else {
@@ -63,43 +76,37 @@ const VideoCall = () => {
     }
 
     return () => {
-      if (userLocalStream) {
-        userLocalStream.getTracks().forEach((track) => track.stop());
+      if (userLocalStream.current) {
+        userLocalStream.current.getTracks().forEach((track) => track.stop());
         console.log("Cleaned up local media stream");
       }
     };
   }, [socket, userLocalStream, typeOfCall]);
 
-  const handleIncomingCall = useCallback(
-    async ({ room, offer }) => {
-      const answer = await PeerService.createAnswer(offer);
-      socket.emit(CALL_ACCEPTED, { room, answer });
-    },
-    [socket, setUserLocalStream]
-  );
+  const handleIncomingCall = useCallback(async ({ room, offer }) => {
+    const answer = await PeerService.createAnswer(offer);
+    socket.emit(CALL_ACCEPTED, { room, answer });
+  }, []);
 
   const sendStreams = useCallback(async () => {
-    if (userLocalStream) {
-      for (const track of userLocalStream.getTracks()) {
+    if (userLocalStream.current) {
+      for (const track of userLocalStream.current.getTracks()) {
         if (!addedTracks.has(track.id)) {
-          PeerService.peer.addTrack(track, userLocalStream);
+          PeerService.peer.addTrack(track, userLocalStream.current);
           addedTracks.add(track.id);
         }
       }
     }
-  }, [userLocalStream]);
+  }, []);
 
-  const handleCallAccepted = useCallback(
-    async ({ room, answer }) => {
-      if (typeOfCall === "ANSWER") {
-        console.log(answer);
-        await PeerService.setLocalDescription(answer);
-        console.log("Call Accepted");
-        sendStreams();
-      }
-    },
-    [socket]
-  );
+  const handleCallAccepted = useCallback(async ({ room, answer }) => {
+    if (typeOfCall === "ANSWER") {
+      console.log(answer);
+      await PeerService.setLocalDescription(answer);
+      console.log("Call Accepted");
+      sendStreams();
+    }
+  }, []);
 
   const handleNeededNegotiation = useCallback(async () => {
     console.log("NEGOTIATION EVENT LISTENER");
@@ -109,7 +116,7 @@ const VideoCall = () => {
       room: { chatId, hostUser: user._id, hostUserName: user.username },
       offerNego: offer,
     });
-  }, [socket, chatId, user._id, user.username]);
+  }, []);
 
   useEffect(() => {
     PeerService.peer.addEventListener(
@@ -126,23 +133,17 @@ const VideoCall = () => {
     };
   }, [socket]);
 
-  const handleRtcNegotiation = useCallback(
-    async ({ room, offer }) => {
-      const answer = await PeerService.createAnswer(offer);
-      console.log("RTC_NEGOTIATION_DONE");
-      socket.emit(RTC_NEGOTIATION_DONE, { room, answer });
-      sendStreams();
-    },
-    [socket, sendStreams]
-  );
+  const handleRtcNegotiation = useCallback(async ({ room, offer }) => {
+    const answer = await PeerService.createAnswer(offer);
+    console.log("RTC_NEGOTIATION_DONE");
+    socket.emit(RTC_NEGOTIATION_DONE, { room, answer });
+    sendStreams();
+  }, []);
 
-  const handleRtcFinalNegotiation = useCallback(
-    async ({ room, answer }) => {
-      await PeerService.setLocalDescription(answer);
-      sendStreams();
-    },
-    [socket, sendStreams]
-  );
+  const handleRtcFinalNegotiation = useCallback(async ({ room, answer }) => {
+    await PeerService.setLocalDescription(answer);
+    sendStreams();
+  }, []);
 
   useEffect(() => {
     const handleTrackEvent = async (e) => {
@@ -182,7 +183,7 @@ const VideoCall = () => {
     if (PeerService.peer) {
       PeerService.peer.close();
     }
-    stopStream(userLocalStream);
+    stopStream(userLocalStream.current);
     stopStream(remoteStream.get(user._id));
     navigate("/");
   };
@@ -239,7 +240,7 @@ const VideoCall = () => {
                 muted
                 height={"100%"}
                 width={"100%"}
-                url={userLocalStream}
+                url={userLocalStream.current}
               />
               <Avatar
                 sx={{ position: "absolute", bottom: 8, left: 8 }}
