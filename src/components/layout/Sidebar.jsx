@@ -38,7 +38,7 @@ const Sidebar = () => {
     (state) => state.misc
   );
   const { notificationsCount } = useSelector((state) => state.chat);
-  const { user } = useSelector((state) => state.auth);
+  const { user, loader } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const handleMobile = () => {
     dispatch(setIsMobileMenu(true));
@@ -157,7 +157,7 @@ const Sidebar = () => {
               <Toolbar>
                 <Tooltip title="Profile">
                   <Avatar
-                    src={user?.avatar.url}
+                    src={user?.avatar?.url}
                     sx={{ cursor: "pointer" }}
                     onClick={() => dispatch(setIsProfileDrawerOpen(true))}
                   />

@@ -88,8 +88,8 @@ const Login = () => {
         formData,
         config
       );
-      dispatch(userExists(true));
-      toast.success(`Welcome, ${data?.data?.createdUser?.name}`);
+      dispatch(userExists(data?.data?.user));
+      toast.success(`Welcome, ${data?.data?.user?.name}`);
     } catch (error) {
       toast.error(
         error?.response?.data?.message || "Something Went Wrong...!!"

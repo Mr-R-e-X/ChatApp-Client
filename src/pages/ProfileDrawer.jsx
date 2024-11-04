@@ -1,4 +1,11 @@
 import {
+  AlternateEmail as AlternateEmailIcon,
+  Close as CloseIcon,
+  DriveFileRenameOutline as DriveFileRenameOutlineIcon,
+  Email as EmailIcon,
+  RememberMe as RememberMeIcon,
+} from "@mui/icons-material";
+import {
   Avatar,
   Box,
   IconButton,
@@ -7,26 +14,14 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useRef } from "react";
-import { setIsProfileDrawerOpen } from "../redux/reducers/misc";
 import { useDispatch, useSelector } from "react-redux";
-import { AvatarChatInfoCard } from "../components/shared/AvatarCard";
-import {
-  Add as AddIcon,
-  AlternateEmail as AlternateEmailIcon,
-  Close as CloseIcon,
-  Delete as DeleteIcon,
-  Diversity3 as Diversity3Icon,
-  DriveFileRenameOutline as DriveFileRenameOutlineIcon,
-  Email as EmailIcon,
-  Logout as LogoutIcon,
-  PhonelinkLock as PhonelinkLockIcon,
-  RememberMe as RememberMeIcon,
-} from "@mui/icons-material";
 import { secondaryColor } from "../constants/color";
+import { setIsProfileDrawerOpen } from "../redux/reducers/misc";
 
 const ProfileDrawer = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user, loader } = useSelector((state) => state.auth);
+  console.log(user);
   const { isProfileDrawerOpen } = useSelector((state) => state.misc);
   const imageRef = useRef(null);
 
@@ -41,6 +36,7 @@ const ProfileDrawer = () => {
   const handleClose = () => {
     dispatch(setIsProfileDrawerOpen(false));
   };
+
   return (
     <SwipeableDrawer
       anchor="left"
@@ -123,7 +119,7 @@ const ProfileDrawer = () => {
                 />
                 <Avatar
                   className="avatar"
-                  src={user?.avatar.url}
+                  src={user?.avatar?.url}
                   sx={{
                     height: "200px",
                     width: "200px",

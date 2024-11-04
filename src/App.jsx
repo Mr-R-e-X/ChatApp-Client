@@ -22,7 +22,6 @@ const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
 const ChatManagement = lazy(() => import("./pages/admin/ChatManagement"));
 const MessageManagement = lazy(() => import("./pages/admin/MessageManagement"));
-// const VideoScreen = lazy(() => import("./pages/VideoCall"));
 
 const App = () => {
   const { user, loader } = useSelector((state) => state.auth);
